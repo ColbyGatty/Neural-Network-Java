@@ -12,20 +12,25 @@ public class FullyConnectedLayer extends Layer {
     private double[][] _weights;
     private int _inLength;
     private int _outLength;
+    private double _learningRate;
 
     private double[] lastZ;
     private double[] lastX;
 
-    public FullyConnectedLayer(int _inLength, int _outLength, long SEED){
+    public FullyConnectedLayer(int _inLength, int _outLength, long SEED, double learningRate){
         this._inLength = _inLength;
         this._outLength = _outLength;
         this.SEED = SEED;
+        this._learningRate = learningRate;
 
         _weights = new double[_inLength][_outLength];
         setRandomWeights();
     }
 
     public double[] fullyConnectedForwardPass(double[] input){
+
+        lastX = input;
+
         double[] z = new double[_outLength];
         double[] out = new double[_outLength];
 
@@ -66,24 +71,43 @@ public class FullyConnectedLayer extends Layer {
     @Override
     public void backPropagation(double[] dLdO) {
 
+        double[] dLdX = new double[_inLength];
+
         double dOdz;
         double dzdw;
         double dLdw;
+        double dZdX;
 
         for(int k = 0; k < _inLength; k++){
+
+            double dLdX_sum = 0;
+
             for(int j = 0; j < _outLength; j++){
 
                 dOdz = derivativeReLu(lastZ[j]);
-                dzdw =
+                dzdw = lastX[k];
+                dZdX = _weights[k][j];
+
+                dLdw = dLdO[j]*dOdz*dzdw;
+
+                _weights[k][j] -= dLdw*_learningRate;
+
+                dLdX_sum += dLdO[j]*dOdz*dZdX;
+
             }
+
+            dLdX[k] = dLdX_sum;
+
         }
-
-
+        if(_previousLayer != null) {
+            _previousLayer.backPropagation(dLdX);
+        }
     }
 
     @Override
     public void backPropagation(List<double[][]> dLdO) {
-
+        double[] vector = matrixToVector(dLdO);
+        backPropagation(vector);
     }
 
     @Override
@@ -103,7 +127,7 @@ public class FullyConnectedLayer extends Layer {
 
     @Override
     public int getOutputElements() {
-        return 0;
+        return _outLength;
     }
 
     public void setRandomWeights(){
