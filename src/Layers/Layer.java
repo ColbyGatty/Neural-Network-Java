@@ -57,7 +57,7 @@ public abstract class Layer {
     }
 
     List<double[][]> vectorToMatrix(double[] input, int length, int rows, int columns){
-        List<double[][]> out = new ArrayList<double[][]>();
+        List<double[][]> out = new ArrayList<>();
 
         int i = 0;
         for (int l = 0; l < length; l++) {

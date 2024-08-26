@@ -29,7 +29,7 @@ public class ConvolutionLayer extends Layer {
         this._inRows = _inRows;
         this._inColumns = _inColumns;
         this.SEED = SEED;
-        this._learningRate = learningRate;
+        _learningRate = learningRate;
 
         generateRandomFilters(numFilters);
 
@@ -63,9 +63,9 @@ public class ConvolutionLayer extends Layer {
 
         List<double[][]> output = new ArrayList<>();
 
-        for(int n = 0; n < list.size(); n++){
+        for(int m = 0; m < list.size(); m++){
             for(double[][] filter : _filters){
-                output.add(convolve(list.get(n), filter, _stepSize ));
+                output.add(convolve(list.get(m), filter, _stepSize ));
             }
         }
 
@@ -254,11 +254,11 @@ public class ConvolutionLayer extends Layer {
         int outRow = 0;
         int outColumn;
 
-        for(int i = -fRows; i < inRows; i++) {
+        for(int i = -fRows + 1; i < inRows; i++) {
 
             outColumn = 0;
 
-            for (int j = -fColumns; j < inColumns; j++) {
+            for (int j = -fColumns + 1; j < inColumns; j++) {
 
                 double sum = 0.0;
 

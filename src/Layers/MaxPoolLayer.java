@@ -129,12 +129,12 @@ public class MaxPoolLayer extends Layer{
 
     @Override
     public int getOutputRows() {
-        return _inRows-_windowSize/_stepSize + 1;
+        return (_inRows-_windowSize)/_stepSize + 1;
     }
 
     @Override
     public int getOutputColumns() {
-        return _inColumns-_windowSize/_stepSize + 1;
+        return (_inColumns-_windowSize)/_stepSize + 1;
     }
 
     @Override

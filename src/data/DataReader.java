@@ -39,7 +39,7 @@ public class DataReader {
             }
 
         } catch (Exception e){
-
+            throw new IllegalArgumentException("File not found " + path);
         }
         return images;
     }

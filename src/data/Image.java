@@ -20,7 +20,7 @@ public class Image {
     @Override
     public String toString() {
 
-        String s = label + "\n";
+        String s = label + ", \n";
 
         for (int i = 0; i < data.length; i++) {
             for (int j = 0; j < data[0].length; j++) {
