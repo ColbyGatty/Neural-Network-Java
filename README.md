@@ -1,5 +1,3 @@
-# Neural-Network-Java-
-
 # Neural Network Java Project
 
 ## Overview
