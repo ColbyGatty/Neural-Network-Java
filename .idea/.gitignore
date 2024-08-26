@@ -7,5 +7,6 @@
 /dataSources/
 /dataSources.local.xml
 # Data set training files
-data/mnist_train.csv
-data/mnist_test.csv
+/data/
+/mnist_train.csv
+/mnist_test.csv
