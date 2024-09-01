@@ -1,10 +1,12 @@
 package Layers;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MaxPoolLayer extends Layer {
-
+    @Serial
+    private static final long serialVersionUID = 1L;
     private int _stepSize;    // Step size for the pooling operation
     private int _windowSize;  // Size of the pooling window
 

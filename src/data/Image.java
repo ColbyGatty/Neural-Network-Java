@@ -1,6 +1,9 @@
 package data;
 
-public class Image {
+import java.io.Serializable;
+
+public class Image implements Serializable {
+    private static final long serialVersionUID = 1L;
     private double[][] data;  // 2D array to hold the pixel data for the image
     private int label;  // Label representing the class of the image (e.g., digit 0-9)
 

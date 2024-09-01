@@ -1,8 +1,12 @@
+package network;
+
 import data.DataReader;
 import data.Image;
-import network.NetworkBuilder;
-import network.NeuralNetwork;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.List;
 
 import static java.util.Collections.shuffle;
@@ -10,7 +14,6 @@ import static java.util.Collections.shuffle;
 public class Main {
 
     public static void main(String[] args) {
-
         long SEED = 123;  // Seed for random number generation
 
         System.out.println("Starting data loading...");
@@ -51,6 +54,33 @@ public class Main {
             network.train(imagesTrain);  // Train the network on the shuffled data
             rate = network.test(imagesTest);  // Test the network after training
             System.out.println("Success Rate after round " + i + ": " + rate);
+        }
+
+        // Save the trained network to a file
+        saveNetwork(network, "out/trained_network.ser");
+    }
+
+    // Method to save the trained network to a file
+    public static void saveNetwork(NeuralNetwork network, String filepath) {
+        try (FileOutputStream fileOut = new FileOutputStream(filepath);
+             ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
+            out.writeObject(network);
+            System.out.println("Neural Network saved to " + filepath);
+        } catch (Exception e) {
+            System.err.println("Error saving neural network: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Method to load the trained network from a file
+    public static NeuralNetwork loadNetwork(String filepath) {
+        try (FileInputStream fileIn = new FileInputStream(filepath);
+             ObjectInputStream in = new ObjectInputStream(fileIn)) {
+            return (NeuralNetwork) in.readObject();
+        } catch (Exception e) {
+            System.err.println("Error loading neural network: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
     }
 }

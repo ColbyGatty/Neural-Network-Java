@@ -2,11 +2,12 @@ package data;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataReader {
-
+public class DataReader implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final int rows = 28;   // Number of rows in the image (28x28 for MNIST dataset)
     private final int columns = 28; // Number of columns in the image (28x28 for MNIST dataset)
 

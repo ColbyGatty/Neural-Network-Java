@@ -1,11 +1,13 @@
 package Layers;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.Random;
 
 public class FullyConnectedLayer extends Layer {
-
-    private long SEED;  // Random seed for initializing weights
+    @Serial
+    private static final long serialVersionUID = 1L;
+    private transient long SEED;  // Random seed for initializing weights
     private final double leak = 0.01;  // Leak factor for Leaky ReLU activation
 
     private double[][] _weights;  // Weights of the layer

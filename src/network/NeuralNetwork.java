@@ -3,14 +3,17 @@ package network;
 import Layers.Layer;
 import data.Image;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static data.MatrixUtility.add;
 import static data.MatrixUtility.multiply;
 
-public class NeuralNetwork {
-
+public class NeuralNetwork implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     List<Layer> _layers;  // List of layers in the neural network
     double scaleFactor;    // Scale factor used for normalizing input data
 

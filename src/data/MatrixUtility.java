@@ -1,7 +1,9 @@
 package data;
 
-public class MatrixUtility {
+import java.io.Serializable;
 
+public class MatrixUtility implements Serializable {
+    private static final long serialVersionUID = 1L;
     /**
      * Performs element-wise addition of two matrices.
      *
