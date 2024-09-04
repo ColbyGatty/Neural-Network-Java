@@ -68,11 +68,11 @@ public class DigitDrawUI extends JFrame {
 
         Graphics2D g2d = drawingImage.createGraphics();
 
-        // Set the drawing color to white for the main pixel
+        // Set the drawing color to pure white
         g2d.setColor(Color.WHITE);
         g2d.fillRect(pixelX, pixelY, 1, 1);
 
-        // Apply a feathered effect with grayscale blending
+        // Apply a more intense feathered effect with a thinner line
         applyFeatherEffect(g2d, pixelX, pixelY);
 
         g2d.dispose();
@@ -81,10 +81,10 @@ public class DigitDrawUI extends JFrame {
 
     private void applyFeatherEffect(Graphics2D g2d, int x, int y) {
         float[][] featherKernel = {
-                {0.1f, 0.2f, 0.1f},
-                {0.2f, 0.4f, 0.2f},
-                {0.1f, 0.2f, 0.1f}
-        }; // A simple kernel to create a smoothing effect
+                {0.05f, 0.15f, 0.05f},
+                {0.15f, 0.5f, 0.15f},
+                {0.05f, 0.15f, 0.05f}
+        }; // A more intense kernel to create a sharper, more focused feathering effect
 
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
@@ -112,6 +112,7 @@ public class DigitDrawUI extends JFrame {
             }
         }
     }
+
 
 
     private void submitDrawing() {
@@ -152,7 +153,7 @@ public class DigitDrawUI extends JFrame {
 //    }
 
     public static void main(String[] args) {
-        NeuralNetwork network = Main.loadNetwork("out/trained_network.ser"); // Load the saved network
+        NeuralNetwork network = Main.loadNetwork("out/trained_networkV3.ser"); // Load the saved network
         SwingUtilities.invokeLater(() -> {
             DigitDrawUI ui = new DigitDrawUI(network);
             ui.setVisible(true);

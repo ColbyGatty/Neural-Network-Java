@@ -44,7 +44,23 @@ public class DataReader implements Serializable {
                     }
                 }
 
-                images.add(new Image(data, label));  // Add the parsed Image object to the list
+                Image originalImage = (new Image(data, label));// Add the parsed Image object to the list
+                images.add(originalImage);
+
+                //Data augmentation Translation
+                try {
+                images.add(originalImage.translateLeft(5));  // Translate left
+                images.add(originalImage.translateRight(5)); // Translate right
+//                images.add(originalImage.translateLeft(3));  // Translate left
+//                images.add(originalImage.translateRight(3)); // Translate right
+//                images.add(originalImage.translateUp(2));    // Translate up
+//                images.add(originalImage.translateDown(2));  // Translate down
+//                images.add(originalImage.rotate(30));        // Rotate by x degrees
+
+                } catch (Exception e) {
+                    System.err.println("Error during image rotation: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
 
         } catch (Exception e) {

@@ -14,7 +14,7 @@ import static java.util.Collections.shuffle;
 public class Main {
 
     public static void main(String[] args) {
-        long SEED = 123;  // Seed for random number generation
+        long SEED = 123;// Seed for random number generation
 
         System.out.println("Starting data loading...");
 
@@ -35,29 +35,45 @@ public class Main {
         System.out.println("Images Test Size: " + imagesTest.size());
 
         // Build the neural network
-        NetworkBuilder builder = new NetworkBuilder(28, 28, 256 * 100);
-        builder.addConvolutionLayer(8, 5, 1, 0.1, SEED);
+        NetworkBuilder builder = new NetworkBuilder(28, 28, 256 * 100 );
+        builder.addConvolutionLayer(8,5, 1, 0.1, SEED);
         builder.addMaxPoolLayer(3, 2);
         builder.addFullyConnectedLayer(10, 0.1, SEED);
 
         NeuralNetwork network = builder.buildNetwork();
 
+
         // Test the network's performance before training
-        float rate = network.test(imagesTest);
-        System.out.println("Network pre-training success rate: " + rate);
+        float bestRate = network.test(imagesTest);
+        System.out.println("Network pre-training success rate: " + bestRate);
 
         // Train the network for a specified number of epochs
-        int epochs = 3;
+        // Early stopping parameters
+        int epochs = 3; // Maximum number of epochs to run
+        int patience = 5; // Number of epochs to wait for an improvement before stopping
+        int epochsWithoutImprovement = 0; // Counter for epochs without improvement
 
+        // Training loop with early stopping
         for (int i = 0; i < epochs; i++) {
             shuffle(imagesTrain);  // Shuffle the training data before each epoch
             network.train(imagesTrain);  // Train the network on the shuffled data
-            rate = network.test(imagesTest);  // Test the network after training
-            System.out.println("Success Rate after round " + i + ": " + rate);
-        }
+            float currentRate = network.test(imagesTest);  // Test the network after training
+            System.out.println("Success Rate after round " + i + ": " + currentRate);
 
-        // Save the trained network to a file
-        saveNetwork(network, "out/trained_network.ser");
+            // Check if the current model is the best so far
+            if (currentRate > bestRate) {
+                bestRate = currentRate;
+                epochsWithoutImprovement = 0;  // Reset the counter
+                saveNetwork(network, "out/trained_networkV5.ser");  // Save the best network
+                System.out.println("New best success rate: " + bestRate + ". Model saved.");
+            } else {
+                epochsWithoutImprovement++;
+                if (epochsWithoutImprovement >= patience) {
+                    System.out.println("Early stopping triggered. Training stopped.");
+                    break;  // Exit the training loop
+                }
+            }
+        }
     }
 
     // Method to save the trained network to a file
