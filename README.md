@@ -35,7 +35,7 @@ This package defines the different types of layers used in the neural network.
 
 - **`FullyConnectedLayer`**: This class implements a fully connected layer, which connects every neuron in the input to every neuron in the output. It is typically used at the end of the network to combine features extracted by previous layers and make the final prediction.
 
-### 4. `Main`
+### 4. `network.Main`
 This is the entry point of the application. It loads the data, constructs the neural network, and trains it on the MNIST dataset.
 
 - **`main()`**: The main method performs the following steps:
@@ -71,13 +71,13 @@ This is the entry point of the application. It loads the data, constructs the ne
     - Open a terminal and navigate to the project directory.
     - Run the following command to compile the Java files:
       ```sh
-      javac -d out -sourcepath src src/Main.java
+      javac -d out -sourcepath src src/network.Main.java
       ```
 
-2. **Run the Main Class**:
+2. **Run the network.Main Class**:
     - After compilation, run the project using the following command:
       ```sh
-      java -cp out Main
+      java -cp out network.Main
       ```
 
 3. **Observe the Output**:

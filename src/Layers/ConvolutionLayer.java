@@ -1,5 +1,6 @@
 package Layers;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -8,8 +9,9 @@ import static data.MatrixUtility.add;
 import static data.MatrixUtility.multiply;
 
 public class ConvolutionLayer extends Layer {
-
-    private long SEED;  // Random seed for initializing filters
+    @Serial
+    private static final long serialVersionUID = 1L;
+    private transient long SEED;  // Random seed for initializing filters
 
     private List<double[][]> _filters;  // List of filters for convolution
     private int _filterSize;  // Size of each filter (assumed to be square)

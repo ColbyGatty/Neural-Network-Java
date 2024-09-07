@@ -5,11 +5,12 @@ import Layers.FullyConnectedLayer;
 import Layers.Layer;
 import Layers.MaxPoolLayer;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NetworkBuilder {
-
+public class NetworkBuilder implements Serializable {
+    private static final long serialVersionUID = 1L;
     private NeuralNetwork network;  // The neural network being built
     private int _inputRows;  // Number of rows in the input data
     private int _inputColumns;  // Number of columns in the input data
