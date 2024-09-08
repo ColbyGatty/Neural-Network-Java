@@ -11,9 +11,9 @@ The project is organized into several packages, each serving a distinct purpose:
 ### 1. `data`
 This package contains classes responsible for handling the input data.
 
-- **`Image`**: This class represents an image from the MNIST dataset. It stores the pixel data in a 2D array and the label (the actual digit). It also includes methods to retrieve the image data and label, and a `toString()` method for converting the image to a string representation.
+- **`Image`**: This class represents an image from the MNIST dataset. It stores the pixel data in a 2D array and the label (the actual digit). It also includes methods to retrieve the image data and label, and a `toString()` method for converting the image to a string representation. This class also houses data augmentation methods for translating and diversifying the MNIST Data Set.
 
-- **`DataReader`**: This class reads the MNIST dataset from CSV files and converts it into a list of `Image` objects. The data is parsed into a 2D array of pixel values and an integer label. The `readData()` method handles the file reading and parsing.
+- **`DataReader`**: This class reads the MNIST dataset from CSV files and converts it into a list of `Image` objects. The data is parsed into a 2D array of pixel values and an integer label. The `readData()` method handles the file reading and parsing. To enable or disable data augmentations, the data translations at the bottom of the readData() method can be commented out or uncommented to include the translation. I experienced the best results when including at least the translations left 5px and right 5px. Take note that the more translations you include the longer the network will take to train.
 
 - **`MatrixUtility`**: This utility class provides static methods for basic matrix and vector operations, such as addition and scalar multiplication. These operations are fundamental to the neural network's computations.
 
@@ -44,6 +44,9 @@ This is the entry point of the application. It loads the data, constructs the ne
     3. **Pre-Training Test**: It tests the network on the test dataset before any training to establish a baseline performance.
     4. **Training**: It trains the network over a specified number of epochs, shuffling the training data before each epoch.
     5. **Post-Training Test**: After each epoch, it tests the network again to evaluate its performance and prints the success rate.
+
+ ### 5. `ui.DigitDrawUI`
+After Main has completed execution and the network has completed the specified number of epochs in the Main class, the network should be saved as output in the format of a .ser file. Next make sure the main method at the bottom of the DigitDrawUI class loads the .ser file from the correct filepath then run the DigitDrawUI class. This should load the saved neural network and open a simple UI where a user can draw any digit between 0 through 9 and after hitting submit, will recieve the networks guess. You should notice that it gets it right very often but there will still be a small margin of incorrect output. This can be tailored by shifting the metrics in the network builder class in Main or by adding additional layers to handle more complexity. 
 
 ## Requirements
 
@@ -89,6 +92,10 @@ This is the entry point of the application. It loads the data, constructs the ne
 - You should see output indicating the size of the training and test datasets.
 - The initial (pre-training) success rate will be low, as the network hasn't learned yet.
 - After each epoch, the success rate should improve as the network learns from the training data.
+- After the specified number of epochs set in Main have run the network should be saved as output in the form of a .ser file.
+- Next ensure the DigitDrawUI class is pointing to the correct .ser file path for your saved network. This can be found toward the botom of the class.
+- Run the DigitDrawUI class and the UI should pop up. Try drawing a 7 and hit submit to recieve the networks guess.
+- NOTE: The MNIST data set is only for hand drawn numbers 0 through 9 so the network will only be able to properly guess drawn digits within that range.
 
 ## Code Explanation
 
