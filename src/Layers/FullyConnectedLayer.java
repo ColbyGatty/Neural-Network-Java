@@ -70,30 +70,18 @@ public class FullyConnectedLayer extends Layer {
 
     @Override
     public double[] getOutput(List<double[][]> input) {
-        try {
             double[] vector = matrixToVector(input);
             return getOutput(vector);
-        } catch (Exception e) {
-            System.err.println("Error converting matrix to vector in getOutput: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
     }
 
     @Override
     public double[] getOutput(double[] input) {
-        try {
             double[] forwardPass = fullyConnectedForwardPass(input);
             if (_nextLayer != null) {
                 return _nextLayer.getOutput(forwardPass);
             } else {
                 return forwardPass;
             }
-        } catch (Exception e) {
-            System.err.println("Error in getOutput during forward pass: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
     }
 
     @Override
@@ -130,13 +118,8 @@ public class FullyConnectedLayer extends Layer {
 
     @Override
     public void backPropagation(List<double[][]> dLdO) {
-        try {
             double[] vector = matrixToVector(dLdO);
             backPropagation(vector);
-        } catch (Exception e) {
-            System.err.println("Error converting matrix to vector in backPropagation: " + e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -165,16 +148,11 @@ public class FullyConnectedLayer extends Layer {
     public void setRandomWeights() {
         Random random = new Random(SEED);
 
-        try {
             for (int i = 0; i < _inLength; i++) {
                 for (int j = 0; j < _outLength; j++) {
                     _weights[i][j] = random.nextGaussian();  // Initialize weights with Gaussian distribution
                 }
             }
-        } catch (Exception e) {
-            System.err.println("Error setting random weights: " + e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     /**

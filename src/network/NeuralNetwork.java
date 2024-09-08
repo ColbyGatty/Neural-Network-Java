@@ -83,17 +83,12 @@ public class NeuralNetwork implements Serializable {
         double max = Double.NEGATIVE_INFINITY;  // Initialize with the smallest possible value
         int index = 0;
 
-        try {
             for (int i = 0; i < in.length; i++) {
                 if (in[i] > max) {
                     max = in[i];
                     index = i;
                 }
             }
-        } catch (Exception e) {
-            System.err.println("Error finding max index: " + e.getMessage());
-            e.printStackTrace();
-        }
 
         return index;
     }
@@ -106,16 +101,12 @@ public class NeuralNetwork implements Serializable {
      */
     public int guess(Image image) {
         int guess = -1;
-        try {
             List<double[][]> inList = new ArrayList<>();
             inList.add(multiply(image.getData(), (1.0 / scaleFactor)));  // Normalize the input data
 
             double[] out = _layers.get(0).getOutput(inList);  // Get the output from the network
             guess = getMaxIndex(out);  // Find the index of the maximum output value
-        } catch (Exception e) {
-            System.err.println("Error making a guess: " + e.getMessage());
-            e.printStackTrace();
-        }
+
         return guess;
     }
 
@@ -128,17 +119,12 @@ public class NeuralNetwork implements Serializable {
     public float test(List<Image> images) {
         int correct = 0;
 
-        try {
             for (Image img : images) {
                 int guess = guess(img);  // Make a prediction for each image
                 if (guess == img.getLabel()) {
                     correct++;  // Increment if the guess is correct
                 }
             }
-        } catch (Exception e) {
-            System.err.println("Error during testing: " + e.getMessage());
-            e.printStackTrace();
-        }
 
         return ((float) correct / images.size());  // Return the accuracy as a percentage
     }

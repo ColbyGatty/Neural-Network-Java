@@ -45,16 +45,10 @@ public class MaxPoolLayer extends Layer {
         _lastMaxRow = new ArrayList<>();
         _lastMaxColumn = new ArrayList<>();
 
-        try {
             for (int l = 0; l < input.size(); l++) {
                 output.add(pool(input.get(l)));  // Apply pooling to each channel
             }
-        } catch (Exception e) {
-            System.err.println("Error during max pooling forward pass: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        return output;
+            return output;
     }
 
     /**
@@ -103,37 +97,21 @@ public class MaxPoolLayer extends Layer {
 
     @Override
     public double[] getOutput(List<double[][]> input) {
-        try {
             List<double[][]> outputPool = maxPoolForwardPass(input);
             return _nextLayer.getOutput(outputPool);
-        } catch (Exception e) {
-            System.err.println("Error getting output: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
     }
 
     @Override
     public double[] getOutput(double[] input) {
-        try {
             List<double[][]> matrixList = vectorToMatrix(input, _inLength, _inRows, _inColumns);
             return getOutput(matrixList);
-        } catch (Exception e) {
-            System.err.println("Error converting input to matrix and getting output: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
     }
 
     @Override
     public void backPropagation(double[] dLdO) {
-        try {
             List<double[][]> matrixList = vectorToMatrix(dLdO, getOutputLength(), getOutputRows(), getOutputColumns());
             backPropagation(matrixList);
-        } catch (Exception e) {
-            System.err.println("Error during backpropagation with vector input: " + e.getMessage());
-            e.printStackTrace();
-        }
+
     }
 
     @Override
@@ -177,34 +155,16 @@ public class MaxPoolLayer extends Layer {
 
     @Override
     public int getOutputRows() {
-        try {
             return (_inRows - _windowSize) / _stepSize + 1;
-        } catch (Exception e) {
-            System.err.println("Error calculating output rows: " + e.getMessage());
-            e.printStackTrace();
-            return -1; // Return an invalid value to indicate an error
-        }
     }
 
     @Override
     public int getOutputColumns() {
-        try {
             return (_inColumns - _windowSize) / _stepSize + 1;
-        } catch (Exception e) {
-            System.err.println("Error calculating output columns: " + e.getMessage());
-            e.printStackTrace();
-            return -1; // Return an invalid value to indicate an error
-        }
     }
 
     @Override
     public int getOutputElements() {
-        try {
             return _inLength * getOutputRows() * getOutputColumns();
-        } catch (Exception e) {
-            System.err.println("Error calculating output elements: " + e.getMessage());
-            e.printStackTrace();
-            return -1; // Return an invalid value to indicate an error
-        }
     }
 }
