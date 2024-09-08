@@ -156,7 +156,7 @@ public class ConvolutionLayer extends Layer {
      */
     public double[][] spaceArray(double[][] input) {
         if (_stepSize == 1) {
-            return input;  // No need to space the array if step size is 1
+            return input;
         }
 
         int outRows = (input.length - 1) * _stepSize + 1;
@@ -180,37 +180,21 @@ public class ConvolutionLayer extends Layer {
 
     @Override
     public double[] getOutput(List<double[][]> input) {
-        try {
             List<double[][]> output = convolutionForwardPass(input);
             return _nextLayer.getOutput(output);
-        } catch (Exception e) {
-            System.err.println("Error getting output from convolution layer: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
+
     }
 
     @Override
     public double[] getOutput(double[] input) {
-        try {
             List<double[][]> matrixInput = vectorToMatrix(input, _inLength, _inRows, _inColumns);
             return getOutput(matrixInput);
-        } catch (Exception e) {
-            System.err.println("Error converting input to matrix and getting output: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
     }
 
     @Override
     public void backPropagation(double[] dLdO) {
-        try {
             List<double[][]> matrixInput = vectorToMatrix(dLdO, _inLength, _inRows, _inColumns);
             backPropagation(matrixInput);
-        } catch (Exception e) {
-            System.err.println("Error during backpropagation with vector input: " + e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -270,16 +254,11 @@ public class ConvolutionLayer extends Layer {
 
         double[][] output = new double[rows][columns];
 
-        try {
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < columns; j++) {
                     output[rows - i - 1][j] = array[i][j];
                 }
             }
-        } catch (Exception e) {
-            System.err.println("Error flipping array horizontally: " + e.getMessage());
-            e.printStackTrace();
-        }
 
         return output;
     }
@@ -296,16 +275,11 @@ public class ConvolutionLayer extends Layer {
 
         double[][] output = new double[rows][columns];
 
-        try {
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < columns; j++) {
                     output[i][columns - j - 1] = array[i][j];
                 }
             }
-        } catch (Exception e) {
-            System.err.println("Error flipping array vertically: " + e.getMessage());
-            e.printStackTrace();
-        }
 
         return output;
     }
@@ -360,45 +334,22 @@ public class ConvolutionLayer extends Layer {
 
     @Override
     public int getOutputLength() {
-        try {
             return _filters.size() * _inLength;
-        } catch (Exception e) {
-            System.err.println("Error calculating output length: " + e.getMessage());
-            e.printStackTrace();
-            return -1;  // Return an invalid value to indicate an error
-        }
     }
 
     @Override
     public int getOutputRows() {
-        try {
             return (_inRows - _filterSize) / _stepSize + 1;
-        } catch (Exception e) {
-            System.err.println("Error calculating output rows: " + e.getMessage());
-            e.printStackTrace();
-            return -1;  // Return an invalid value to indicate an error
-        }
     }
 
     @Override
     public int getOutputColumns() {
-        try {
             return (_inColumns - _filterSize) / _stepSize + 1;
-        } catch (Exception e) {
-            System.err.println("Error calculating output columns: " + e.getMessage());
-            e.printStackTrace();
-            return -1;  // Return an invalid value to indicate an error
-        }
+
     }
 
     @Override
     public int getOutputElements() {
-        try {
             return getOutputColumns() * getOutputRows() * getOutputLength();
-        } catch (Exception e) {
-            System.err.println("Error calculating output elements: " + e.getMessage());
-            e.printStackTrace();
-            return -1;  // Return an invalid value to indicate an error
-        }
     }
 }

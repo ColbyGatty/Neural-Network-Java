@@ -136,7 +136,7 @@ public class DigitDrawUI extends JFrame {
         int prediction = network.guess(userImage);
 
         // Display the prediction
-        JOptionPane.showMessageDialog(this, "Predicted Digit: " + prediction);
+        JOptionPane.showMessageDialog(this, "This looks like a " + prediction + " to me!");
     }
 
     // Method to print the 2D array representing the image data

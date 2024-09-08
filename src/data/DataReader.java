@@ -49,8 +49,8 @@ public class DataReader implements Serializable {
 
                 //Data augmentation Translation
                 try {
-                images.add(originalImage.translateLeft(5));  // Translate left
-                images.add(originalImage.translateRight(5)); // Translate right
+//                images.add(originalImage.translateLeft(5));  // Translate left
+//                images.add(originalImage.translateRight(5)); // Translate right
 //                images.add(originalImage.translateLeft(3));  // Translate left
 //                images.add(originalImage.translateRight(3)); // Translate right
 //                images.add(originalImage.translateUp(2));    // Translate up

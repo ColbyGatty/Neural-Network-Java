@@ -107,12 +107,7 @@ public class NetworkBuilder implements Serializable {
      * @return The constructed NeuralNetwork object.
      */
     public NeuralNetwork buildNetwork() {
-        try {
             network = new NeuralNetwork(_layers, _scaleFactor);
-        } catch (Exception e) {
-            System.err.println("Error building Neural Network: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return network;
+            return network;
     }
 }
