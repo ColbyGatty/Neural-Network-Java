@@ -112,5 +112,4 @@ After Main has completed execution and the network has completed the specified n
 
 ## Conclusion
 
-This project provides a hands-on understanding of how a convolutional neural network is structured and trained from scratch in Java. By following the steps outlined in this `README`, you should be able to load the MNIST dataset, train the network, and observe its performance as it learns to recognize handwritten digits.
-Future plans for this project include creating a UI where a user can submit one of the images from the mnist data set and get the networks response in return.
+This project provides a hands-on understanding of how a convolutional neural network is structured and trained from scratch in Java. By following the steps outlined in this `README`, you should be able to load the MNIST dataset, train the network, and observe its performance as it learns to recognize handwritten digits. You should then be able to load the saved Model into the Ui, Draw digits between 0-9, and then recieve the networks prediction.
