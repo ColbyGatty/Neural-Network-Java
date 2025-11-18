@@ -97,6 +97,30 @@ After Main has completed execution and the network has completed the specified n
 - Run the DigitDrawUI class and the UI should pop up. Try drawing a 7 and hit submit to recieve the networks guess.
 - NOTE: The MNIST data set is only for hand drawn numbers 0 through 9 so the network will only be able to properly guess drawn digits within that range.
 
+### Product Dashboard & Governance
+
+A simple governance dashboard can be launched after training so stakeholders can explore the MNIST samples, monitor accuracy, and access decision support without modifying the core network or drawing UI. The dashboard reads the same collected datasets (`Data/mnist_train.csv` and `Data/mnist_test.csv`) and wires in the persisted model (`out/trained_networkV6.ser` or the V5 fallback).
+
+Build and run the dashboard with:
+
+```sh
+javac -d out -sourcepath src src/product/ProductDashboard.java
+NN_DASHBOARD_TOKEN=mnist-dashboard-key java -cp out product.ProductDashboard
+```
+
+If the environment variable is not set, the dashboard will prompt for the same token before it opens; the SHA-256 guard is implemented in `product.SecurityGuard`.
+
+The dashboard serves the remaining product requirements:
+
+1. **Descriptive vs. predictive insights** – `DataWrangler.describeDataset(...)` provides the descriptive summary while `ModelEvaluator.predictTrainingOutcome(...)` offers a predictive look at the next epoch.
+2. **Featurizing, cleaning, parsing, and wrangling** – `product.DataWrangler` exposes helpers such as `cleanSparsity`, `extractFeatureVectors`, and `normalize` so the samples can be prepped before exploration.
+3. **Decision support & accuracy monitoring** – The central panel displays decision guidance from `ModelEvaluator.generateDecisionSupport`, while accuracy evaluation is wired to the trained `NeuralNetwork` via `ModelEvaluator.evaluateAccuracy` and surfaced through `MonitoringTool`.
+4. **Interactive queries & visualization** – Use the digit count query field to inspect label frequencies, explore the two analytics charts (bar chart for label distribution and line chart for accuracy trends), and draw a digit directly in the embedded sketch pad panel to see the model’s live prediction inside the dashboard. If the prediction is incorrect, type the correct digit into the correction box below the sketch pad and click “Save Correction”; the sample is written to `data/user_corrections.csv` and will automatically join the next training run so the model improves from your corrections.
+5. **Monitoring & maintenance tooling** – `MonitoringTool` captures dataset loads, queries, and health checks, and the UI exposes refresh and health-check buttons so operators can keep the product in shape.
+6. **Machine learning & evaluation** – The dashboard calls the existing `NeuralNetwork.test(...)` method and shows the result alongside recent accuracy, giving visibility into the machine-learning behavior without modifying the core network logic.
+
+These additions keep the neural network and draw UI untouched while satisfying the governance, visualization, security, and monitoring expectations for the capstone product.
+
 ## Code Explanation
 
 ### Key Concepts

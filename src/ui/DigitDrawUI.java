@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import network.Main;
 import network.NeuralNetwork;
 import data.Image;
+import product.ModelLocator;
 
 public class DigitDrawUI extends JFrame {
     private static final int GRID_SIZE = 28;
@@ -153,7 +154,16 @@ public class DigitDrawUI extends JFrame {
 //    }
 
     public static void main(String[] args) {
-        NeuralNetwork network = Main.loadNetwork("out/trained_networkV3.ser"); // Load the saved network
+        String path = ModelLocator.findLatestModelPath("out");
+        if (path == null) {
+            JOptionPane.showMessageDialog(null, "No trained model found in out/; train the network first.");
+            return;
+        }
+        NeuralNetwork network = Main.loadNetwork(path);
+        if (network == null) {
+            JOptionPane.showMessageDialog(null, "Failed to load model at " + path);
+            return;
+        }
         SwingUtilities.invokeLater(() -> {
             DigitDrawUI ui = new DigitDrawUI(network);
             ui.setVisible(true);

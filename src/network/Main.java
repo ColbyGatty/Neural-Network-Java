@@ -2,6 +2,7 @@ package network;
 
 import data.DataReader;
 import data.Image;
+import product.UserCorrectionStore;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -22,9 +23,14 @@ public class Main {
         List<Image> imagesTest;
         List<Image> imagesTrain;
 
+        UserCorrectionStore correctionStore = new UserCorrectionStore();
         try {
             imagesTest = new DataReader().readData("data/mnist_test.csv");
             imagesTrain = new DataReader().readData("data/mnist_train.csv");
+            List<Image> corrections = correctionStore.loadCorrections();
+            if (!corrections.isEmpty()) {
+                imagesTrain.addAll(corrections);
+            }
         } catch (IllegalArgumentException e) {
             System.err.println("Error loading data: " + e.getMessage());
             return;  // Exit the program if data loading fails
@@ -49,7 +55,7 @@ public class Main {
 
         // Train the network for a specified number of epochs
         // Early stopping parameters
-        int epochs = 3; // Maximum number of epochs to run
+        int epochs = 4; // Maximum number of epochs to run
         int patience = 5; // Number of epochs to wait for an improvement before stopping
         int epochsWithoutImprovement = 0; // Counter for epochs without improvement
 
@@ -64,7 +70,7 @@ public class Main {
             if (currentRate > bestRate) {
                 bestRate = currentRate;
                 epochsWithoutImprovement = 0;  // Reset the counter
-                saveNetwork(network, "out/trained_networkV5.ser");  // Save the best network
+                saveNetwork(network, "out/trained_networkV6.ser");  // Save the best network
                 System.out.println("New best success rate: " + bestRate + ". Model saved.");
             } else {
                 epochsWithoutImprovement++;
