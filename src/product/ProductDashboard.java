@@ -32,6 +32,8 @@ public class ProductDashboard extends JFrame {
     private static final int CHART_FIXED_HEIGHT = 300;
     private static final int CHART_MARGIN = 16;
     private static final double CONTRAST_THRESHOLD = 0.35;
+    private static final String LOGIN_USERNAME = "admin";
+    private static final String LOGIN_PASSWORD = "wgucapstone";
 
     private final JLabel summaryLabel = new JLabel("Loading data...");
     private final JLabel decisionSupportLabel = new JLabel("Decision guidance will appear here.");
@@ -228,7 +230,7 @@ public class ProductDashboard extends JFrame {
         float accuracy = evaluator.evaluateAccuracy(network, testData);
         float baseline = Math.max(0.4f, accuracy - 0.03f);
         double predicted = evaluator.predictTrainingOutcome(accuracy, baseline);
-        decisionSupportLabel.setText(String.format("%s Next epoch: %.1f%%", evaluator.generateDecisionSupport(accuracy, baseline), predicted * 100));
+        decisionSupportLabel.setText(String.format("%s Predicted Next Epoch: %.1f%%", evaluator.generateDecisionSupport(accuracy, baseline), predicted * 100));
 
         distributionPanel.updateDistribution(DataWrangler.getLabelDistribution(cleaned));
         accuracyPanel.updateTrend(evaluator.buildAccuracyTrend(baseline, accuracy));
@@ -254,24 +256,42 @@ public class ProductDashboard extends JFrame {
     }
 
     /**
-     * Launches the dashboard if the security guard is satisfied.
+     * Launches the dashboard after the user passes the login dialog.
      */
     public static void main(String[] args) {
-        SecurityGuard guard = new SecurityGuard();
-        boolean authorized = guard.authorizeFromEnvironment();
-        if (!authorized) {
-            String candidate = JOptionPane.showInputDialog("Enter dashboard token (see README).");
-            authorized = guard.authorize(candidate);
-        }
-        if (!authorized) {
-            JOptionPane.showMessageDialog(null, "Access denied. Valid token required.");
-            return;
-        }
 
         SwingUtilities.invokeLater(() -> {
+            if (!showLoginDialog()) {
+                return;
+            }
             ProductDashboard dashboard = new ProductDashboard();
             dashboard.setVisible(true);
         });
+    }
+
+    private static boolean showLoginDialog() {
+        JTextField usernameField = new JTextField(12);
+        JPasswordField passwordField = new JPasswordField(12);
+        JPanel loginPanel = new JPanel(new GridLayout(2, 2, 6, 6));
+        loginPanel.add(new JLabel("Username:"));
+        loginPanel.add(usernameField);
+        loginPanel.add(new JLabel("Password:"));
+        loginPanel.add(passwordField);
+
+        while (true) {
+            int option = JOptionPane.showConfirmDialog(null, loginPanel, "Login", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (option != JOptionPane.OK_OPTION) {
+                return false;
+            }
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword());
+            if (LOGIN_USERNAME.equals(username) && LOGIN_PASSWORD.equals(password)) {
+                return true;
+            }
+            JOptionPane.showMessageDialog(null, "Invalid credentials. Please try again.", "Access denied", JOptionPane.ERROR_MESSAGE);
+            usernameField.setText("");
+            passwordField.setText("");
+        }
     }
 
     private static class LabelDistributionPanel extends JPanel {

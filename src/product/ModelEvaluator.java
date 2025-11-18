@@ -48,8 +48,8 @@ public class ModelEvaluator {
      * Decision support logic that drives the textual guidance area.
      */
     public String generateDecisionSupport(float currentAccuracy, float bestAccuracy) {
-        if (currentAccuracy >= 0.95) {
-            return "Accuracy is stable above 95%. Focus on deployment and monitoring.";
+        if (currentAccuracy >= 0.80) {
+            return "Accuracy is stable above 80%. Focus on deployment and monitoring.";
         } else if (bestAccuracy - currentAccuracy < 0.02) {
             return "Progress is slowing. Consider hyperparameter tuning or more clean samples.";
         } else {

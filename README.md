@@ -105,10 +105,10 @@ Build and run the dashboard with:
 
 ```sh
 javac -d out -sourcepath src src/product/ProductDashboard.java
-NN_DASHBOARD_TOKEN=mnist-dashboard-key java -cp out product.ProductDashboard
+java -cp out product.ProductDashboard
 ```
 
-If the environment variable is not set, the dashboard will prompt for the same token before it opens; the SHA-256 guard is implemented in `product.SecurityGuard`.
+A login dialog now safeguards the dashboard; use username `admin` and password `wgucapstone` to continue (canceling closes the launcher).
 
 The dashboard serves the remaining product requirements:
 
