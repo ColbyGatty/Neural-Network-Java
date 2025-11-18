@@ -55,7 +55,7 @@ public class Main {
 
         // Train the network for a specified number of epochs
         // Early stopping parameters
-        int epochs = 4; // Maximum number of epochs to run
+        int epochs = 5; // Maximum number of epochs to run
         int patience = 5; // Number of epochs to wait for an improvement before stopping
         int epochsWithoutImprovement = 0; // Counter for epochs without improvement
 
@@ -70,7 +70,7 @@ public class Main {
             if (currentRate > bestRate) {
                 bestRate = currentRate;
                 epochsWithoutImprovement = 0;  // Reset the counter
-                saveNetwork(network, "out/trained_networkV6.ser");  // Save the best network
+                saveNetwork(network, "out/trained_network.ser");  // Save the best network
                 System.out.println("New best success rate: " + bestRate + ". Model saved.");
             } else {
                 epochsWithoutImprovement++;

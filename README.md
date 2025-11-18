@@ -11,9 +11,9 @@ The project is organized into several packages, each serving a distinct purpose:
 ### 1. `data`
 This package contains classes responsible for handling the input data.
 
-- **`Image`**: This class represents an image from the MNIST dataset. It stores the pixel data in a 2D array and the label (the actual digit). It also includes methods to retrieve the image data and label, and a `toString()` method for converting the image to a string representation. This class also houses data augmentation methods for translating and diversifying the MNIST Data Set.
+- **`Image`**: This class represents an image from the MNIST dataset. It stores the pixel data in a 2D array and the label (the actual digit). It also includes methods to retrieve the image data and label, and a `toString()` method for converting the image to a string representation.
 
-- **`DataReader`**: This class reads the MNIST dataset from CSV files and converts it into a list of `Image` objects. The data is parsed into a 2D array of pixel values and an integer label. The `readData()` method handles the file reading and parsing. To enable or disable data augmentations, the data translations at the bottom of the readData() method can be commented out or uncommented to include the translation. I experienced the best results when including at least the translations left 5px and right 5px. Take note that the more translations you include the longer the network will take to train.
+- **`DataReader`**: This class reads the MNIST dataset from CSV files and converts it into a list of `Image` objects. The data is parsed into a 2D array of pixel values and an integer label. The `readData()` method handles the file reading and parsing.
 
 - **`MatrixUtility`**: This utility class provides static methods for basic matrix and vector operations, such as addition and scalar multiplication. These operations are fundamental to the neural network's computations.
 
@@ -74,7 +74,7 @@ After Main has completed execution and the network has completed the specified n
     - Open a terminal and navigate to the project directory.
     - Run the following command to compile the Java files:
       ```sh
-      javac -d out -sourcepath src src/network.Main.java
+      javac -d out -sourcepath src src/network/Main.java
       ```
 
 2. **Run the network.Main Class**:
@@ -105,7 +105,7 @@ Build and run the dashboard with:
 
 ```sh
 javac -d out -sourcepath src src/product/ProductDashboard.java
-java -cp out product.ProductDashboard
+java -cp out product.ProductDashboard 
 ```
 
 A login dialog now safeguards the dashboard; use username `admin` and password `wgucapstone` to continue (canceling closes the launcher).

@@ -31,7 +31,7 @@ public class DataWrangler {
     }
 
     /**
-     * Predictive method used to anticipate next-orb training gains.
+     * Predictive method used to anticipate next round training gains.
      */
     public static double predictNextEpochAccuracy(double currentAccuracy, double changeRate) {
         return Math.min(1.0, currentAccuracy + changeRate * 0.25);
