@@ -471,7 +471,7 @@ public class ProductDashboard extends JFrame {
             String predictionText = String.valueOf(prediction);
             predictionLabel.setText("Prediction: " + predictionText);
             monitor.record("Draw widget predicted: " + predictionText);
-            correctionPanel.presentCandidate(new SampleResult(duplicateCanvasImage(), sample), predictionText, true);
+            correctionPanel.presentCandidate(new SampleResult(duplicateCanvasImage(), sample), predictionText);
         }
 
         private double[][] captureCanvas() {
@@ -605,24 +605,21 @@ public class ProductDashboard extends JFrame {
             correctionEntryPanel.setVisible(false);
         }
 
-        void presentCandidate(SampleResult candidate, String prediction, boolean allowCorrection) {
-            if (allowCorrection && candidate != null) {
+        void presentCandidate(SampleResult candidate, String prediction) {
+            if (candidate != null) {
                 pendingSample = candidate.sample;
                 questionLabel.setText("Did I guess right? Prediction: " + prediction);
-            } else {
-                pendingSample = null;
-                questionLabel.setText("Multi-digit prediction: " + prediction);
-            }
-            if (candidate != null) {
                 previewLabel.setIcon(toPreviewIcon(candidate.processedPreview));
-            }
-            previewLabel.setText("");
-            if (allowCorrection) {
+                previewLabel.setText("");
                 statusLabel.setText("Click yes if correct or no to enter the true label.");
                 yesButton.setEnabled(true);
                 noButton.setEnabled(true);
             } else {
-                statusLabel.setText("Correction feedback is disabled for multi-digit predictions.");
+                pendingSample = null;
+                questionLabel.setText("Draw or upload to generate a prediction.");
+                previewLabel.setIcon(null);
+                previewLabel.setText("Awaiting guess");
+                statusLabel.setText("Click on yes if I guessed right or no to save a correction.");
                 yesButton.setEnabled(false);
                 noButton.setEnabled(false);
             }
@@ -695,23 +692,11 @@ public class ProductDashboard extends JFrame {
                     monitor.record("Upload skipped, model unavailable.");
                     return;
                 }
-                List<Image> digitSlices = MultiDigitProcessor.extractDigits(sampleResult.sample.getData());
-                String predictionText;
-                boolean singleDigit = digitSlices.size() == 1;
-                if (singleDigit) {
-                    predictionText = MultiDigitProcessor.predictCombined(network, digitSlices);
-                    if (predictionText.isEmpty()) {
-                        predictionText = String.valueOf(network.guess(sampleResult.sample));
-                    }
-                } else {
-                    predictionText = MultiDigitProcessor.predictCombined(network, digitSlices);
-                    if (predictionText.isEmpty()) {
-                        predictionText = String.valueOf(network.guess(sampleResult.sample));
-                    }
-                }
+                int prediction = network.guess(sampleResult.sample);
+                String predictionText = String.valueOf(prediction);
                 statusLabel.setText("Prediction: " + predictionText);
                 monitor.record("Uploaded image predicted: " + predictionText);
-                correctionPanel.presentCandidate(sampleResult, predictionText, singleDigit);
+                correctionPanel.presentCandidate(sampleResult, predictionText);
             } catch (Exception ex) {
                 statusLabel.setText("Error loading image.");
                 monitor.record("Upload failed: " + ex.getMessage());
