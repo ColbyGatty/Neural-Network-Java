@@ -6,6 +6,7 @@ import data.Image;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static data.MatrixUtility.add;
@@ -148,6 +149,36 @@ public class NeuralNetwork implements Serializable {
         } catch (Exception e) {
             System.err.println("Error during training: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    public List<LayerInfo> describeLayers() {
+        if (_layers == null || _layers.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<LayerInfo> info = new ArrayList<>();
+        for (Layer layer : _layers) {
+            info.add(new LayerInfo(
+                    layer.getClass().getSimpleName(),
+                    layer.getOutputElements(),
+                    layer.getOutputRows(),
+                    layer.getOutputColumns()
+            ));
+        }
+        return Collections.unmodifiableList(info);
+    }
+
+    public static class LayerInfo {
+        public final String typeName;
+        public final int outputs;
+        public final int rows;
+        public final int columns;
+
+        public LayerInfo(String typeName, int outputs, int rows, int columns) {
+            this.typeName = typeName;
+            this.outputs = outputs;
+            this.rows = rows;
+            this.columns = columns;
         }
     }
 }

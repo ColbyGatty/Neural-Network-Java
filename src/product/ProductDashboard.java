@@ -3,23 +3,18 @@ package product;
 import data.DataReader;
 import data.Image;
 import network.NeuralNetwork;
+import ui.DigitDrawUI;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-
 /**
  * Simple dashboard that surfaces data exploration, decision support, query editing, monitoring,
  * and three visualizations that allow the monitoring and use of my neural network.
@@ -44,8 +39,9 @@ public class ProductDashboard extends JFrame {
     private final JLabel queryResultLabel = new JLabel("Label query results show here.");
 
     private final LabelDistributionPanel distributionPanel = new LabelDistributionPanel();
-    private final AccuracyTrendPanel accuracyPanel = new AccuracyTrendPanel();
-    private final DrawingWidget drawingWidget = new DrawingWidget();
+    private final ModelExplanationPanel explanationPanel = new ModelExplanationPanel();
+    private final ConfusionMatrixPanel confusionPanel = new ConfusionMatrixPanel();
+    private DigitDrawUI digitDrawUI;
     private final CorrectionPanel correctionPanel = new CorrectionPanel();
     private final UploadPanel uploadPanel = new UploadPanel();
     private final UserCorrectionStore correctionStore = new UserCorrectionStore();
@@ -111,41 +107,29 @@ public class ProductDashboard extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout(12, 12));
         mainPanel.add(infoPanel, BorderLayout.NORTH);
 
-        JPanel charts = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(0, 0, 0, 12);
-        gbc.weighty = 1.0;
+        digitDrawUI = new DigitDrawUI(network);
+        digitDrawUI.setPredictionListener((sample, preview, prediction) -> {
+            correctionPanel.presentCandidate(new SampleResult(preview, sample), String.valueOf(prediction));
+            monitor.record("Draw digit UI predicted: " + prediction);
+        });
 
-        gbc.gridx = 0;
-        gbc.weightx = 0.45;
-        charts.add(distributionPanel, gbc);
+        JPanel topRow = new JPanel(new GridLayout(1, 2, 12, 12));
+        topRow.add(distributionPanel);
+        topRow.add(confusionPanel);
 
-        gbc.gridx = 1;
-        charts.add(accuracyPanel, gbc);
-
-        gbc.gridx = 2;
-        gbc.insets = new Insets(0, 0, 0, 0);
-        gbc.weightx = 0;
-        charts.add(drawingWidget, gbc);
-
-        Dimension chartsDim = new Dimension(Integer.MAX_VALUE, CHART_FIXED_HEIGHT);
-        charts.setPreferredSize(new Dimension(760, CHART_FIXED_HEIGHT));
-        charts.setMinimumSize(new Dimension(500, CHART_FIXED_HEIGHT));
-        charts.setMaximumSize(chartsDim);
+        JPanel bottomRowCharts = new JPanel(new BorderLayout(12, 0));
+        bottomRowCharts.add(explanationPanel, BorderLayout.CENTER);
+        JPanel padWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        padWrapper.add(digitDrawUI);
+        bottomRowCharts.add(padWrapper, BorderLayout.EAST);
 
         JPanel centerWrapper = new JPanel();
         centerWrapper.setLayout(new BoxLayout(centerWrapper, BoxLayout.Y_AXIS));
         centerWrapper.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
-        JPanel chartHolder = new JPanel(new BorderLayout());
-        chartHolder.setPreferredSize(new Dimension(760, CHART_FIXED_HEIGHT));
-        chartHolder.setMinimumSize(new Dimension(760, CHART_FIXED_HEIGHT));
-        chartHolder.setMaximumSize(new Dimension(Integer.MAX_VALUE, CHART_FIXED_HEIGHT));
-        chartHolder.add(charts, BorderLayout.CENTER);
-
-        centerWrapper.add(chartHolder);
+        centerWrapper.add(topRow);
+        centerWrapper.add(Box.createRigidArea(new Dimension(0, 12)));
+        centerWrapper.add(bottomRowCharts);
         centerWrapper.add(Box.createRigidArea(new Dimension(0, 12)));
 
         JPanel bottomRow = new JPanel(new GridLayout(1, 2, 12, 0));
@@ -153,7 +137,7 @@ public class ProductDashboard extends JFrame {
         bottomRow.add(correctionPanel);
         centerWrapper.add(bottomRow);
         scrollContent.add(centerWrapper, BorderLayout.CENTER);
-        scrollContent.setPreferredSize(new Dimension(1100, 640));
+        scrollContent.setPreferredSize(new Dimension(1100, 900));
 
         JScrollPane scrollPane = new JScrollPane(scrollContent);
         scrollPane.setBorder(null);
@@ -233,7 +217,11 @@ public class ProductDashboard extends JFrame {
         decisionSupportLabel.setText(String.format("%s Predicted Next Epoch: %.1f%%", evaluator.generateDecisionSupport(accuracy, baseline), predicted * 100));
 
         distributionPanel.updateDistribution(DataWrangler.getLabelDistribution(cleaned));
-        accuracyPanel.updateTrend(evaluator.buildAccuracyTrend(baseline, accuracy));
+        explanationPanel.updateStructure(network);
+        confusionPanel.updateMatrix(evaluator.buildConfusionMatrix(network, testData, 10));
+        if (digitDrawUI != null) {
+            digitDrawUI.setNetwork(network);
+        }
 
         statusLabel.setText(monitor.getStatusSummary());
         refreshLogView();
@@ -336,182 +324,182 @@ public class ProductDashboard extends JFrame {
         }
     }
 
-    private static class AccuracyTrendPanel extends JPanel {
-        private List<Double> trend = Collections.emptyList();
-        public void updateTrend(List<Double> trend) {
-            this.trend = trend;
-            repaint();
-        }
+    private static class ModelExplanationPanel extends JPanel {
+        private List<NeuralNetwork.LayerInfo> layers = Collections.emptyList();
 
-        AccuracyTrendPanel() {
+        ModelExplanationPanel() {
             setPreferredSize(new Dimension(CHART_PANEL_DIMENSION.width, CHART_FIXED_HEIGHT));
             setMaximumSize(new Dimension(Integer.MAX_VALUE, CHART_FIXED_HEIGHT));
             setMinimumSize(new Dimension(240, CHART_FIXED_HEIGHT));
         }
 
+        public void updateStructure(NeuralNetwork network) {
+            layers = network == null ? Collections.emptyList() : network.describeLayers();
+            repaint();
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            setBorder(BorderFactory.createTitledBorder("Accuracy Trend (Line Chart)"));
-            if (trend.isEmpty()) {
+            setBorder(BorderFactory.createTitledBorder("Model Explanation"));
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            if (layers.isEmpty()) {
+                g2.setColor(Color.GRAY);
+                String placeholder = "Model structure unavailable.";
+                FontMetrics fm = g2.getFontMetrics();
+                int x = (getWidth() - fm.stringWidth(placeholder)) / 2;
+                int y = getHeight() / 2;
+                g2.drawString(placeholder, Math.max(0, x), y);
                 return;
             }
-            Insets insets = getInsets();
-            int margin = CHART_MARGIN;
-            int titleSpace = 18;
-            int availableWidth = Math.max(0, getWidth() - margin * 2 - insets.left - insets.right);
-            int availableHeight = Math.max(0, getHeight() - margin * 2 - insets.top - insets.bottom - titleSpace);
-            int xStep = availableWidth / Math.max(1, trend.size() - 1);
-            int maxValue = trend.stream().mapToInt(Double::intValue).max().orElse(100);
-            int minValue = trend.stream().mapToInt(Double::intValue).min().orElse(0);
-            int prevX = margin + insets.left;
-            int prevY = margin + insets.top + titleSpace + availableHeight - scaleValue(trend.get(0), availableHeight, minValue, maxValue);
 
-            for (int idx = 1; idx < trend.size(); idx++) {
-                int x = margin + insets.left + idx * xStep;
-                int y = margin + insets.top + titleSpace + availableHeight - scaleValue(trend.get(idx), availableHeight, minValue, maxValue);
-                g.setColor(Color.RED);
-                g.drawLine(prevX, prevY, x, y);
-                g.fillOval(x - 3, y - 3, 6, 6);
-                prevX = x;
-                prevY = y;
+            int horizontalPadding = 32;
+            int verticalPadding = 32;
+            int availableWidth = Math.max(64, getWidth() - horizontalPadding * 2);
+            int availableHeight = Math.max(64, getHeight() - verticalPadding * 2 - 20);
+            int layerCount = layers.size();
+            double step = layerCount == 1 ? 0 : (double) availableWidth / (layerCount - 1);
+            List<Point> previousCenters = Collections.emptyList();
+
+            for (int layerIndex = 0; layerIndex < layerCount; layerIndex++) {
+                NeuralNetwork.LayerInfo info = layers.get(layerIndex);
+                int visualNodes = mapToVisualNodes(Math.max(1, info.outputs));
+                double segmentHeight = availableHeight;
+                double spacing = segmentHeight / (visualNodes + 1);
+                int centerX = horizontalPadding + (int) (layerIndex == 0 ? 0 : Math.round(layerIndex * step));
+
+                List<Point> currentCenters = new java.util.ArrayList<>();
+                for (int node = 0; node < visualNodes; node++) {
+                    int centerY = verticalPadding + (int) ((node + 1) * spacing);
+                    currentCenters.add(new Point(centerX, centerY));
+                    g2.setColor(new Color(91, 155, 213));
+                    g2.fillOval(centerX - 8, centerY - 8, 16, 16);
+                    g2.setColor(Color.DARK_GRAY);
+                    g2.drawOval(centerX - 8, centerY - 8, 16, 16);
+                }
+
+                for (Point prev : previousCenters) {
+                    g2.setColor(new Color(0, 120, 0, 120));
+                    for (Point curr : currentCenters) {
+                        g2.drawLine(prev.x, prev.y, curr.x, curr.y);
+                    }
+                }
+
+                previousCenters = currentCenters;
+
+                String typeLabel = info.typeName;
+                String detailLabel = info.outputs + " outputs";
+                FontMetrics fm = g2.getFontMetrics();
+                int textY = getHeight() - verticalPadding / 2;
+                int availableRight = getWidth() - horizontalPadding;
+                int typeX = centerX - fm.stringWidth(typeLabel) / 2;
+                int typeClampedX = Math.min(Math.max(horizontalPadding, typeX), Math.max(horizontalPadding, availableRight - fm.stringWidth(typeLabel)));
+                g2.setColor(Color.BLACK);
+                g2.drawString(typeLabel, typeClampedX, textY - 14);
+                int detailX = centerX - fm.stringWidth(detailLabel) / 2;
+                int detailClampedX = Math.min(Math.max(horizontalPadding, detailX), Math.max(horizontalPadding, availableRight - fm.stringWidth(detailLabel)));
+                g2.drawString(detailLabel, detailClampedX, textY - 2);
             }
         }
 
-        private int scaleValue(double value, int height, int minValue, int maxValue) {
-            if (maxValue == minValue) {
-                return height / 2;
-            }
-            return (int) ((value - minValue) / (double) (maxValue - minValue) * height);
+        private int mapToVisualNodes(int outputs) {
+            double normalized = Math.min(1.0, outputs / 400.0);
+            return 3 + (int) (normalized * 10);
         }
     }
 
-    private class DrawingWidget extends JPanel {
-        private static final int GRID_SIZE = 28;
-        private static final Dimension DRAW_WIDGET_DIMENSION = new Dimension(320, 320);
-        private final BufferedImage canvas = new BufferedImage(GRID_SIZE, GRID_SIZE, BufferedImage.TYPE_BYTE_GRAY);
-        private final JLabel predictionLabel = new JLabel("Prediction: ");
-        private final JButton submitButton = new JButton("Submit");
+    private static class ConfusionMatrixPanel extends JPanel {
+        private int[][] matrix = new int[0][0];
 
-        DrawingWidget() {
-            setLayout(new BorderLayout(4, 4));
-            setBorder(BorderFactory.createTitledBorder("Interactive Draw Panel"));
-            JPanel drawingArea = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    super.paintComponent(g);
-                    g.drawImage(canvas, 0, 0, getWidth(), getHeight(), null);
-                }
-            };
-            drawingArea.setBackground(Color.BLACK);
-            drawingArea.addMouseMotionListener(new MouseAdapter() {
-                @Override
-                public void mouseDragged(MouseEvent e) {
-                    drawPoint(e.getX(), e.getY(), drawingArea);
-                }
-            });
-            drawingArea.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    drawPoint(e.getX(), e.getY(), drawingArea);
-                }
-            });
-
-            add(drawingArea, BorderLayout.CENTER);
-
-            JPanel controls = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 4));
-            controls.add(submitButton);
-            controls.add(predictionLabel);
-            add(controls, BorderLayout.SOUTH);
-
-            submitButton.addActionListener(e -> submitDrawing());
-
-            clearCanvas();
-            setPreferredSize(DRAW_WIDGET_DIMENSION);
-            setMinimumSize(DRAW_WIDGET_DIMENSION);
-            setMaximumSize(DRAW_WIDGET_DIMENSION);
+        ConfusionMatrixPanel() {
+            setPreferredSize(new Dimension(CHART_PANEL_DIMENSION.width, CHART_FIXED_HEIGHT));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, CHART_FIXED_HEIGHT));
+            setMinimumSize(new Dimension(240, CHART_FIXED_HEIGHT));
         }
 
-        private void drawPoint(int x, int y, Component reference) {
-            int cellWidth = Math.max(1, reference.getWidth() / GRID_SIZE);
-            int cellHeight = Math.max(1, reference.getHeight() / GRID_SIZE);
-            int pixelX = Math.min(GRID_SIZE - 1, Math.max(0, x / cellWidth));
-            int pixelY = Math.min(GRID_SIZE - 1, Math.max(0, y / cellHeight));
-
-            Graphics2D g2d = canvas.createGraphics();
-            g2d.setColor(Color.WHITE);
-            g2d.fillRect(pixelX, pixelY, 1, 1);
-            applyFeatherEffect(g2d, pixelX, pixelY);
-            g2d.dispose();
+        public void updateMatrix(int[][] newMatrix) {
+            if (newMatrix == null || newMatrix.length == 0) {
+                matrix = new int[0][0];
+            } else {
+                matrix = new int[newMatrix.length][];
+                for (int i = 0; i < newMatrix.length; i++) {
+                    matrix[i] = java.util.Arrays.copyOf(newMatrix[i], newMatrix[i].length);
+                }
+            }
             repaint();
         }
 
-        private void clearCanvas() {
-            Graphics2D g2d = canvas.createGraphics();
-            g2d.setColor(Color.BLACK);
-            g2d.fillRect(0, 0, GRID_SIZE, GRID_SIZE);
-            g2d.dispose();
-            repaint();
-        }
-
-        public void resetDrawing() {
-            clearCanvas();
-            predictionLabel.setText("Prediction: ");
-        }
-
-        private void submitDrawing() {
-            if (network == null) {
-                predictionLabel.setText("Prediction: model not loaded");
-                monitor.record("Draw widget submit skipped: no model.");
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            setBorder(BorderFactory.createTitledBorder("Confusion Matrix"));
+            if (matrix.length == 0) {
+                g.setColor(Color.GRAY);
+                String placeholder = "No prediction matrix available.";
+                FontMetrics fm = g.getFontMetrics();
+                int x = (getWidth() - fm.stringWidth(placeholder)) / 2;
+                int y = getHeight() / 2;
+                g.drawString(placeholder, Math.max(0, x), y);
                 return;
             }
-            double[][] snapshot = captureCanvas();
-            Image sample = new Image(snapshot, -1);
-            int prediction = network.guess(sample);
-            String predictionText = String.valueOf(prediction);
-            predictionLabel.setText("Prediction: " + predictionText);
-            monitor.record("Draw widget predicted: " + predictionText);
-            correctionPanel.presentCandidate(new SampleResult(duplicateCanvasImage(), sample), predictionText);
-        }
 
-        private double[][] captureCanvas() {
-            double[][] data = new double[GRID_SIZE][GRID_SIZE];
-            for (int row = 0; row < GRID_SIZE; row++) {
-                for (int col = 0; col < GRID_SIZE; col++) {
-                    int pixel = canvas.getRGB(col, row) & 0xFF;
-                    data[row][col] = pixel / 255.0;
+            int rows = matrix.length;
+            int cols = matrix[0].length;
+            int margin = 28;
+            int axisLabelArea = 40;
+            int width = getWidth();
+            int height = getHeight();
+            int gridWidth = Math.max(96, width - margin * 2 - axisLabelArea);
+            int gridHeight = Math.max(96, height - margin * 2 - axisLabelArea - 24);
+            int cellWidth = Math.max(20, gridWidth / cols);
+            int cellHeight = Math.max(20, gridHeight / rows);
+            int startX = margin + axisLabelArea;
+            int startY = margin + axisLabelArea / 2;
+            int maxValue = 0;
+            for (int[] row : matrix) {
+                for (int value : row) {
+                    maxValue = Math.max(maxValue, value);
                 }
             }
-            return data;
-        }
 
-        private BufferedImage duplicateCanvasImage() {
-            BufferedImage copy = new BufferedImage(GRID_SIZE, GRID_SIZE, BufferedImage.TYPE_BYTE_GRAY);
-            Graphics2D g2d = copy.createGraphics();
-            g2d.drawImage(canvas, 0, 0, null);
-            g2d.dispose();
-            return copy;
-        }
-
-        private void applyFeatherEffect(Graphics2D g2d, int x, int y) {
-            float[][] kernel = {
-                    {0.05f, 0.15f, 0.05f},
-                    {0.15f, 0.5f, 0.15f},
-                    {0.05f, 0.15f, 0.05f}
-            };
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    int nx = x + dx;
-                    int ny = y + dy;
-                    if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE) {
-                        int alpha = (int) (kernel[dx + 1][dy + 1] * 255);
-                        int existing = canvas.getRGB(nx, ny) & 0xFF;
-                        int blended = Math.min(255, existing + alpha);
-                        int color = (255 << 24) | (blended << 16) | (blended << 8) | blended;
-                        canvas.setRGB(nx, ny, color);
-                    }
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < cols; c++) {
+                    int x = startX + c * cellWidth;
+                    int y = startY + r * cellHeight;
+                    float intensity = maxValue == 0 ? 0f : (float) matrix[r][c] / maxValue;
+                    int alpha = 80 + (int) (140 * intensity);
+                    g.setColor(new Color(70, 130, 180, Math.min(255, alpha)));
+                    g.fillRect(x, y, cellWidth, cellHeight);
+                    g.setColor(Color.WHITE);
+                    g.drawRect(x, y, cellWidth, cellHeight);
+                    String text = String.valueOf(matrix[r][c]);
+                    FontMetrics fm = g.getFontMetrics();
+                    int textX = x + (cellWidth - fm.stringWidth(text)) / 2;
+                    int textY = y + (cellHeight + fm.getAscent()) / 2 - 2;
+                    g.setColor(Color.BLACK);
+                    g.drawString(text, textX, textY);
                 }
             }
+
+            g.setColor(Color.DARK_GRAY);
+            for (int r = 0; r < rows; r++) {
+                String label = String.valueOf(r);
+                int y = startY + r * cellHeight + cellHeight / 2 + 5;
+                g.drawString(label, 4, y);
+            }
+            for (int c = 0; c < cols; c++) {
+                String label = String.valueOf(c);
+                FontMetrics fm = g.getFontMetrics();
+                int x = startX + c * cellWidth + (cellWidth - fm.stringWidth(label)) / 2;
+                g.drawString(label, x, startY + rows * cellHeight + 18);
+            }
+
+            g.setColor(Color.BLACK);
+            g.drawString("Actual ↓", 4, startY - 12);
+            int predictedY = Math.min(height - margin / 2, startY + rows * cellHeight + 32);
+            g.drawString("Predicted →", startX + (cols * cellWidth) / 2 - 18, predictedY);
         }
     }
 
@@ -638,7 +626,9 @@ public class ProductDashboard extends JFrame {
         }
 
         private void handleClearAll() {
-            drawingWidget.resetDrawing();
+            if (digitDrawUI != null) {
+                digitDrawUI.resetDrawing();
+            }
             uploadPanel.resetUploadState();
             resetPanel();
         }

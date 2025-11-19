@@ -80,6 +80,32 @@ public class ModelEvaluator {
         return predictions;
     }
 
+    public int[][] buildConfusionMatrix(NeuralNetwork network, List<Image> dataset, int classCount) {
+        if (network == null || dataset == null || dataset.isEmpty() || classCount <= 0) {
+            monitor.record("Confusion matrix skipped: insufficient data or network.");
+            return new int[0][0];
+        }
+        int[][] matrix = new int[classCount][classCount];
+
+        for (Image sample : dataset) {
+            int actual = clampLabel(sample.getLabel(), classCount);
+            int predicted = clampLabel(network.guess(sample), classCount);
+            matrix[actual][predicted]++;
+        }
+        monitor.record("Confusion matrix built for " + classCount + " classes.");
+        return matrix;
+    }
+
+    private static int clampLabel(int label, int classCount) {
+        if (label < 0) {
+            return 0;
+        }
+        if (label >= classCount) {
+            return classCount - 1;
+        }
+        return label;
+    }
+
     /**
      * Loads the saved network while honoring the main loader.
      */
